@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sydney Buses</title>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <link rel='stylesheet' href='http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css' />
+  <link rel='stylesheet' href="style.css" />
+  <script src='//cdn.leafletjs.com/leaflet-0.6.4/leaflet.js'></script>
+  <script src='//code.jquery.com/jquery-2.0.3.min.js'></script>
+  <script src='bower_components/underscore/underscore.js'></script>
+</head>
+<body>
+  <div class="sidebar">
+    <select id="routes"></select>
+    <select><option>TRIP</option></select>
+  </div>
+  <div id='map'></div>
+  <script>
+    var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/22677/256/{z}/{x}/{y}.png'
+	cloudmadeAttribution = 'Map data &copy; 2013 OpenStreetMap contributors, Imagery &copy; 2013 CloudMade',
+	layerOptions = { maxZoom: 18, attribution: cloudmadeAttribution, styleId: 22677 },
+	layer = L.tileLayer(cloudmadeUrl, layerOptions),
+	map = L.map('map',{
+	  zoom: 10,
+	  layers: [layer]
+	}),
+	layerGroup = new L.LayerGroup(),
+	layerCache = new LayerCache(),
+	routes = $.ajax({ url: 'http://localhost:9001/routes' });
+
+    // Quick cache
+    function LayerCache() {
+      var layers = {};
+      return {
+	add: function(layer, key) {
+	  if( !layers[key] ) {
+	    layers[key] = layer;
+	  }
+	},
+	get: function(key) {
+	  return layers[key];
+	}
+      }
+    }
+
+
+
+    // --- Go --- //
+    $.when( routes ).then(function(routeJson) {
+      var $routes = $('#routes');
+      _.each(routeJson, function(r) {
+	var shortName = r.route_short_name,
+	    routeId = r.route_id,
+	    option = '<option data-name="' + routeId + '">' + shortName + '</option>';
+
+	$routes.append(option);
+      });
+
+      $routes.on('change', function(evt) {
+	var optionSelected = $("option:selected", this);
+	var routeId = $(optionSelected).attr('data-name');
+	var getShapes = $.ajax({
+	  url: 'http://localhost:9001/shapes/' + routeId
+	});
+
+
+	$.when( getShapes ).then(function(shapesJson) {
+	  var myStyle = {
+	    "color": "#ff7800",
+	    "weight": 1,
+	    "opacity": 1
+	  };
+
+	  var geoJsonLayer,
+	      cacheKey = shapesJson.properties.shape_id,
+	      cachedLayer = layerCache.get(cacheKey);
+
+	  if( !cachedLayer ) {
+	    geoJsonLayer = L.geoJson(shapesJson, {
+	      onEachFeature: function(feature, layer) {
+		layer.setStyle(myStyle);
+		layer.on({
+		  click: function() {
+		    console.log(feature);
+		  },
+		  mouseover: function(evt) {
+		  },
+		  mouseout: function(evt) {
+		  }
+		});
+	      }
+	    });
+	    layerCache.add(cacheKey)
+	  }
+	  else {
+	    geoJsonLayer = cachedLayer;
+	  }
+
+	  layerGroup.addLayer(geoJsonLayer);
+	});
+      });
+    });
+
+    layerGroup.addTo(map);
+
+    $('#map').css('height', function() { return document.body.clientHeight || '800px'; });
+    map.setView([-33.8600, 151.2111], 10);
+  </script>
+</body>
+</html>

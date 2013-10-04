@@ -53,14 +53,14 @@ api.get('/shapes/:route_id', function(req, res) {
     // get all the points of the line string
     db.collection('shapes').find({ shape_id: shapeId }).toArray(function(err, shapes) {
       var geoJsonFeature = {
-	type: "Feature",
-	geometry: {
-	  type: "LineString",
-	  coordinates: _.zip(_.pluck(shapes, 'shape_pt_lon'), _.pluck(shapes, 'shape_pt_lat'))
-	},
-	properties: {
-	  shape_id: shapeId
-	}
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: _.zip(_.pluck(shapes, 'shape_pt_lon'), _.pluck(shapes, 'shape_pt_lat'))
+        },
+        properties: {
+          shape_id: shapeId
+        }
       };
 
       res.send(JSON.stringify(geoJsonFeature));

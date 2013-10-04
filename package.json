@@ -1,0 +1,15 @@
+{
+  "name": "sydney-buses",
+  "version": "0.0.0",
+  "description": "NSW Transit Data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "author": "Thom Joy",
+  "license": "BSD",
+  "dependencies": {
+    "bower": "~1.2.7"
+  }
+}

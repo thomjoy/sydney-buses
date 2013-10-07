@@ -33,8 +33,8 @@ api.get('/trips', function(req, res) {
 
 api.get('/routes', function(req, res) {
   res.set(headers);
-  console.log('/routes ' + mapData.routes);
   db.collection('routes').find().toArray(function (err, routes) {
+    console.log(routes);
     res.send(JSON.stringify(routes));
   });
 });

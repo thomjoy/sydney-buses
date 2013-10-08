@@ -5,11 +5,13 @@ var path = require('path');
 var _ = require('underscore');
 var mongo = require('mongoskin');
 var db = mongo.db('localhost:27017/nsw_traffic', {safe: true});
+var PORT = 9000;
 
 // --- Serve the API
 var api = express();
 
 api.use(express.bodyParser());
+api.use(express.static(__dirname));
 
 var headers = {
   'Access-Control-Allow-Origin': '*',
@@ -21,17 +23,20 @@ var headers = {
 
 api.get('/stops', function(req, res) {
   res.set(headers);
-  db.collection('stops').find().toArray(function (err, routes) {
-    res.send(JSON.stringify(routes));
+  db.collection('stops').find({ route_id: routeId }).toArray(function (err, stops) {
+    res.send(JSON.stringify(stops));
   });
 });
 
-api.get('/trips', function(req, res) {
+api.get('/trip/:route_id', function(req, res) {
   res.set(headers);
-  res.send(gtfsData.trips);
+  var routeId = req.params.route_id;
+  db.collection('trips').find({ route_id: routeId }).toArray(function (err, stops) {
+    res.send(JSON.stringify(stops));
+  });
 });
 
-api.get('/routes', function(req, res) {
+api.get('/route', function(req, res) {
   res.set(headers);
   db.collection('routes').find().toArray(function (err, routes) {
     console.log(routes);
@@ -39,13 +44,13 @@ api.get('/routes', function(req, res) {
   });
 });
 
-api.get('/shapes/:route_id', function(req, res) {
+api.get('/shape/:route_id', function(req, res) {
   res.set(headers);
 
   var routeId = req.params.route_id;
   console.log(routeId);
 
-  db.collection('trips').find( {route_id: routeId }).toArray(function (err, trips) {
+  db.collection('trips').find({route_id: routeId }).toArray(function (err, trips) {
     // for now just pick one...
     var item = trips[0];
     var shapeId = item.shape_id;
@@ -68,5 +73,5 @@ api.get('/shapes/:route_id', function(req, res) {
   });
 });
 
-api.listen(9001);
-console.log('API listening on :9001');
+api.listen(PORT);
+console.log('API listening on :' + PORT);

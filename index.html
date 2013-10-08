@@ -27,7 +27,7 @@
         }),
         layerGroup = new L.LayerGroup(),
         layerCache = new LayerCache(),
-        routes = $.ajax({ url: 'http://localhost:9001/routes' });
+        routes = $.ajax({ url: 'http://localhost:9000/routes' });
 
         // Quick cache
         function LayerCache() {
@@ -61,7 +61,7 @@
         var optionSelected = $("option:selected", this);
         var routeId = $(optionSelected).attr('data-name');
         var getShapes = $.ajax({
-          url: 'http://localhost:9001/shapes/' + routeId
+          url: 'http://localhost:9000/shapes/' + routeId
         });
 
 

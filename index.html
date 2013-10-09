@@ -12,8 +12,8 @@
 </head>
 <body>
   <div class="sidebar">
-    <select id="routes"></select>
-    <select><option>TRIP</option></select>
+    <select id="route"></select>
+    <select id="trip"></select>
   </div>
   <div id='map'></div>
   <script>
@@ -27,7 +27,7 @@
         }),
         layerGroup = new L.LayerGroup(),
         layerCache = new LayerCache(),
-        routes = $.ajax({ url: 'http://localhost:9000/routes' });
+        routes = $.ajax({ url: 'http://localhost:9000/route' });
 
         // Quick cache
         function LayerCache() {
@@ -48,36 +48,51 @@
 
     // --- Go --- //
     $.when( routes ).then(function(routeJson) {
-      var $routes = $('#routes');
+      var $route = $('#route');
       _.each(routeJson, function(r) {
         var shortName = r.route_short_name,
             routeId = r.route_id,
             option = '<option data-name="' + routeId + '">' + shortName + '</option>';
 
-        $routes.append(option);
+        $route.append(option);
       });
 
-      $routes.on('change', function(evt) {
+      $route.on('change', function(evt) {
         var optionSelected = $("option:selected", this);
         var routeId = $(optionSelected).attr('data-name');
         var getShapes = $.ajax({
-          url: 'http://localhost:9000/shapes/' + routeId
+          url: 'http://localhost:9000/shape/' + routeId
+        });
+        var getTrips = $.ajax({
+          url: 'http://localhost:9000/trip/' + routeId
         });
 
 
-        $.when( getShapes ).then(function(shapesJson) {
+        $.when( getShapes, getTrips ).then(function(shapesJson, tripsJson) {
           var myStyle = {
             "color": "#ff7800",
             "weight": 1,
             "opacity": 1
           };
 
-          var geoJsonLayer,
-              cacheKey = shapesJson.properties.shape_id,
+          console.log(tripsJson[0]);
+          $('#trip').empty();
+
+          _.each(tripsJson[0].trips, function(t) {
+            var name = t.trip_headsign,
+                tripId = t.trip_id,
+                option = '<option data-name="' + tripId + '">' + name + '</option>';
+
+            $('#trip').append(option);
+          });
+
+          var shapeLayer,
+              markerLayer,
+              cacheKey = shapesJson[0].properties.shape_id,
               cachedLayer = layerCache.get(cacheKey);
 
           if( !cachedLayer ) {
-            geoJsonLayer = L.geoJson(shapesJson, {
+            shapeLayer = L.geoJson(shapesJson[0], {
               onEachFeature: function(feature, layer) {
                 layer.setStyle(myStyle);
                 layer.on({
@@ -91,13 +106,38 @@
                 });
               }
             });
+
             layerCache.add(cacheKey)
           }
           else {
-            geoJsonLayer = cachedLayer;
+            shapeLayer = cachedLayer;
           }
 
-          layerGroup.addLayer(geoJsonLayer);
+          var markers = [];
+          _.each(tripsJson[0].stops, function(s) {
+            console.log(s);
+            var m = new L.Marker([s.stop_lat, s.stop_lon]).toGeoJSON();
+            markerLayer = L.geoJson(m, {
+              style: {
+                "color": "#000",
+                "weight": 3,
+                "opacity": 1
+              },
+              onEachFeature: function(feature, layer) {
+                layer.on({
+                  click: function() {
+                   console.log(feature);
+                  },
+                  mouseover: function(evt) {
+                  },
+                  mouseout: function(evt) {
+                  }
+                });
+              }
+            }).addTo(map);
+          });
+
+          layerGroup.addLayer(shapeLayer);
         });
       });
     });

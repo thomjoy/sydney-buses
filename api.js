@@ -21,13 +21,6 @@ var headers = {
   'Content-Type': 'application/json'
 };
 
-api.get('/stops', function(req, res) {
-  res.set(headers);
-  db.collection('stops').find({ route_id: routeId }).toArray(function (err, stops) {
-    res.send(JSON.stringify(stops));
-  });
-});
-
 api.get('/trip/:route_id', function(req, res) {
   var resp = {};
   var routeId = req.params.route_id;
@@ -52,6 +45,7 @@ api.get('/trip/:route_id', function(req, res) {
   });
 });
 
+// -- Populates the initial route selects
 api.get('/route/:route_id?', function(req, res) {
   console.log(req.params.route_id);
   if( req.params.route_id ) {
@@ -61,9 +55,43 @@ api.get('/route/:route_id?', function(req, res) {
     });
   }
   else {
-    db.collection('routes').find().toArray(function (err, routes) {
+    db.collection('routes').find().sort({ route_short_name: -1 }).toArray(function (err, routes) {
       res.set(headers);
       res.send(JSON.stringify(routes));
+    });
+  }
+});
+
+api.get('/stops/:trip_id?', function(req, res) {
+  if( req.params.trip_id ) {
+    db.collection('stop_times').find({ trip_id: req.params.trip_id }).toArray(function(err, stops) {
+      if( err ) throw err;
+
+      // figure out how to join... on stop_id!
+      var stopIds = _.pluck(stops, 'stop_id');
+      
+      //console.log(stopIds);
+      db.collection('stops').find({'stop_id': { $in: stopIds }}).toArray(function(err, stopsArray){
+        console.log(stopsArray.length + ' stops found');
+        var resp = [];
+        _.each(stopsArray, function(stop) {
+          var s = _.where(stops, { stop_id: stop.stop_id })[0];
+          _.extend(s, { stop_name: stop.stop_name, stop_lat: stop.stop_lat, stop_lon: stop.stop_lon });
+          resp.push(s);
+        });
+        resp.sort(function(a, b) {
+          return a.stop_sequence - b.stop_sequence;
+        });
+        res.set(headers);
+        res.send(JSON.stringify(resp));
+      });
+    });
+  }
+  else {
+    db.collection('stop_times').find({ route_id: routeId }).toArray(function (err, stops) {
+      if( err ) throw err;
+      res.set(headers);
+      res.send(JSON.stringify(stops));
     });
   }
 });
@@ -74,7 +102,7 @@ api.get('/shape/:route_id?', function(req, res) {
   
   if( routeId ) {
     console.log('Finding Shape for Route: ' + routeId);
-    db.collection('trips').find({route_id: routeId }).toArray(function (err, trips) {
+    db.collection('trips').find({ route_id: routeId }).toArray(function (err, trips) {
       // for now just pick one...
       var item = trips[0];
       var shapeId = item.shape_id;
@@ -109,7 +137,7 @@ api.get('/shape/:route_id?', function(req, res) {
         
         // get all the points of the line string
         db.collection('shapes').find({ shape_id: id }).toArray(function(err, shapes) {
-          console.log(shapes);
+          //console.log(shapes);
           var geoJsonFeature = {
             type: "Feature",
             geometry: {
@@ -125,7 +153,7 @@ api.get('/shape/:route_id?', function(req, res) {
         });
       });
       
-      console.log(geoJsonFeatures.length);
+      //console.log(geoJsonFeatures.length);
       res.set(headers);
       res.send(JSON.stringify(geoJsonFeatures));
     });

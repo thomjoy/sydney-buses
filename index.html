@@ -12,8 +12,12 @@
 </head>
 <body>
   <div class="sidebar">
+    <label>Route</label>
     <select id="route"></select>
+    <label>Destination</label>
     <select id="trip"></select>
+    <ul id="stop-times">
+    </ul>
   </div>
   <div id='map'></div>
   <script>
@@ -44,17 +48,46 @@
           }
         }
 
-
-
     // --- Go --- //
     $.when( routes ).then(function(routeJson) {
       var $route = $('#route');
+      var $trip = $('#trip');
+
       _.each(routeJson, function(r) {
         var shortName = r.route_short_name,
             routeId = r.route_id,
             option = '<option data-name="' + routeId + '">' + shortName + '</option>';
 
         $route.append(option);
+      });
+
+      $trip.on('change', function(evt) {
+        var optionSelected = $("option:selected", this);
+        var tripId = $(optionSelected).attr('data-name');
+
+        var getStops = $.ajax({
+          url: 'http://localhost:9000/stops/' + tripId
+        });
+
+        $.when( getStops ).then(function( stops ) {
+          var $ul = $('#stop-times');
+          var listItems = [];
+
+          _.each(stops, function(stop) {
+            var li = '<li id="' + stop.stop_id + '">';
+                li += "<h4>Stop: " + stop.stop_name + "</h4>";
+                li += "<div>" + stop.stop_sequence + "</div>"
+                li += "<div>Arrive: " + stop.arrival_time + "</div>";
+                li += "<div>Depart: " + stop.departure_time + "</div>";
+                li += "<div>(" + stop.trip_id + ")</div>";
+                li += "</li>";
+            listItems.push(li);
+          });
+
+          console.log(stops);
+
+          $ul.empty().append(listItems);
+        });
       });
 
       $route.on('change', function(evt) {
@@ -113,6 +146,7 @@
             shapeLayer = cachedLayer;
           }
 
+          /*
           var markers = [];
           _.each(tripsJson[0].stops, function(s) {
             console.log(s);
@@ -136,6 +170,7 @@
               }
             }).addTo(map);
           });
+          */
 
           layerGroup.addLayer(shapeLayer);
         });

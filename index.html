@@ -75,11 +75,10 @@
 
           _.each(stops, function(stop) {
             var li = '<li id="' + stop.stop_id + '">';
-                li += "<h4>Stop: " + stop.stop_name + "</h4>";
-                li += "<div>" + stop.stop_sequence + "</div>"
+                li += "<h4>" + stop.stop_name + "</h4>";
                 li += "<div>Arrive: " + stop.arrival_time + "</div>";
                 li += "<div>Depart: " + stop.departure_time + "</div>";
-                li += "<div>(" + stop.trip_id + ")</div>";
+                li += '<div data-latlon="' + stop.stop_lat + ',' + stop.stop_lon + '">Show on Map</div>';
                 li += "</li>";
             listItems.push(li);
           });

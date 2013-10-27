@@ -78,7 +78,7 @@
                 li += "<h4>" + stop.stop_name + "</h4>";
                 li += "<div>Arrive: " + stop.arrival_time + "</div>";
                 li += "<div>Depart: " + stop.departure_time + "</div>";
-                li += '<div data-latlon="' + stop.stop_lat + ',' + stop.stop_lon + '">Show on Map</div>';
+                li += '<div class="add-to-map" data-latlon="' + stop.stop_lat + ',' + stop.stop_lon + '">Show on Map</div>';
                 li += "</li>";
             listItems.push(li);
           });
@@ -86,6 +86,30 @@
           console.log(stops);
 
           $ul.empty().append(listItems);
+
+            
+          $('.add-to-map').on('click', function() {
+            var coords = $(this).data('latlon').split(',');
+            var m = new L.Marker([coords[0], coords[1]]).toGeoJSON();
+            var markerLayer = L.geoJson(m, {
+              style: {
+                "color": "#000",
+                "weight": 3,
+                "opacity": 1
+              },
+              onEachFeature: function(feature, layer) {
+                layer.on({
+                  click: function() {
+                   console.log(feature);
+                  },
+                  mouseover: function(evt) {
+                  },
+                  mouseout: function(evt) {
+                  }
+                });
+              }
+            }).addTo(map);
+          });
         });
       });
 

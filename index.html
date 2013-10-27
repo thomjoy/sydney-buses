@@ -3,12 +3,14 @@
 <head>
   <title>Sydney Buses</title>
   <meta charset='utf-8' />
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <link rel='stylesheet' href='http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css' />
+  <link rel="stylesheet" href="bower_components/nprogress/nprogress.css" />
   <link rel='stylesheet' href="style.css" />
   <script src='//cdn.leafletjs.com/leaflet-0.6.4/leaflet.js'></script>
   <script src='//code.jquery.com/jquery-2.0.3.min.js'></script>
   <script src='bower_components/underscore/underscore.js'></script>
+  <script src="bower_components/nprogress/nprogress.js"></script>
 </head>
 <body>
   <div class="sidebar">
@@ -33,20 +35,27 @@
         layerCache = new LayerCache(),
         routes = $.ajax({ url: 'http://localhost:9000/route' });
 
-        // Quick cache
-        function LayerCache() {
-          var layers = {};
-          return {
-            add: function(layer, key) {
-              if( !layers[key] ) {
-                layers[key] = layer;
-              }
-            },
-            get: function(key) {
-              return layers[key];
-            }
+    // Quick cache
+    function LayerCache() {
+      var layers = {};
+      return {
+        add: function(layer, key) {
+          if( !layers[key] ) {
+            layers[key] = layer;
           }
+        },
+        get: function(key) {
+          return layers[key];
         }
+      }
+    }
+
+    $( document ).ajaxStart(function() {
+        NProgress.start();
+    });
+    $( document ).ajaxStop(function() {
+        NProgress.done();
+    });
 
     // --- Go --- //
     $.when( routes ).then(function(routeJson) {
@@ -129,7 +138,7 @@
 
             trips.push('<option data-name="' + tripId + '">' + name + '</option>');
           });
-          
+
           $('#trip option').remove();
           $('#trip').append(trips);
 

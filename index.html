@@ -72,7 +72,7 @@
         $.when( getStops ).then(function( stops ) {
           var $ul = $('#stop-times');
           var listItems = [];
-
+        
           _.each(stops, function(stop) {
             var li = '<li id="' + stop.stop_id + '">';
                 li += "<h4>" + stop.stop_name + "</h4>";
@@ -83,20 +83,12 @@
             listItems.push(li);
           });
 
-          console.log(stops);
-
           $ul.empty().append(listItems);
-
-            
+  
           $('.add-to-map').on('click', function() {
             var coords = $(this).data('latlon').split(',');
             var m = new L.Marker([coords[0], coords[1]]).toGeoJSON();
             var markerLayer = L.geoJson(m, {
-              style: {
-                "color": "#000",
-                "weight": 3,
-                "opacity": 1
-              },
               onEachFeature: function(feature, layer) {
                 layer.on({
                   click: function() { 
@@ -123,24 +115,23 @@
           url: 'http://localhost:9000/trip/' + routeId
         });
 
-
         $.when( getShapes, getTrips ).then(function(shapesJson, tripsJson) {
           var myStyle = {
             "color": "#ff7800",
             "weight": 1,
             "opacity": 1
           };
-
-          console.log(tripsJson[0]);
-          $('#trip').empty();
-
+          var trips = [];
+          
           _.each(tripsJson[0].trips, function(t) {
             var name = t.trip_headsign,
-                tripId = t.trip_id,
-                option = '<option data-name="' + tripId + '">' + name + '</option>';
+                tripId = t.trip_id;
 
-            $('#trip').append(option);
+            trips.push('<option data-name="' + tripId + '">' + name + '</option>');
           });
+          
+          $('#trip option').remove();
+          $('#trip').append(trips);
 
           var shapeLayer,
               markerLayer,
@@ -168,32 +159,6 @@
           else {
             shapeLayer = cachedLayer;
           }
-
-          /*
-          var markers = [];
-          _.each(tripsJson[0].stops, function(s) {
-            console.log(s);
-            var m = new L.Marker([s.stop_lat, s.stop_lon]).toGeoJSON();
-            markerLayer = L.geoJson(m, {
-              style: {
-                "color": "#000",
-                "weight": 3,
-                "opacity": 1
-              },
-              onEachFeature: function(feature, layer) {
-                layer.on({
-                  click: function() {
-                   console.log(feature);
-                  },
-                  mouseover: function(evt) {
-                  },
-                  mouseout: function(evt) {
-                  }
-                });
-              }
-            }).addTo(map);
-          });
-          */
 
           layerGroup.addLayer(shapeLayer);
         });

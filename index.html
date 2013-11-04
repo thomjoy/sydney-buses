@@ -110,6 +110,14 @@
                 });
               }
             }).addTo(map);
+
+            markerLayer.on({
+              add: function() {
+                console.log(this.getBounds());
+                map.fitBounds(this.getBounds());
+              }
+            });
+            
           });
         });
       });
@@ -126,7 +134,7 @@
 
         $.when( getShapes, getTrips ).then(function(shapesJson, tripsJson) {
           var myStyle = {
-            "color": "#ff7800",
+            "color": "#29d",
             "weight": 1,
             "opacity": 1
           };

@@ -22,3 +22,4 @@ label { display: block; font-family: 'Lucida Grande'; font-weight: bold; font-si
 
 #stop-times li h4 { margin: 0; padding: 0; font-size: 12px; color: #333; }
 #stop-times div { margin: 0; padding: 0; }
+.add-to-map { cursor: pointer; color: #29d; }

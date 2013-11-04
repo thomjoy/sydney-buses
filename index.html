@@ -96,7 +96,8 @@
   
           $('.add-to-map').on('click', function() {
             var coords = $(this).data('latlon').split(',');
-            var m = new L.Marker([coords[0], coords[1]]).toGeoJSON();
+            var latLng = new L.LatLng(coords[0], coords[1]);
+            var m = new L.Marker(latLng).toGeoJSON();
             var markerLayer = L.geoJson(m, {
               onEachFeature: function(feature, layer) {
                 layer.on({
@@ -111,13 +112,9 @@
               }
             }).addTo(map);
 
-            markerLayer.on({
-              add: function() {
-                console.log(this.getBounds());
-                map.fitBounds(this.getBounds());
-              }
-            });
-            
+            //map.fitBounds(latLng);
+            map.panTo(latLng);
+            map.setZoom(16);
           });
         });
       });

@@ -119,8 +119,8 @@
             //}
 
             //map.fitBounds(latLng);
-            map.panTo(latLng);
-            map.setZoom(16);
+            //map.panTo(latLng);
+            //map.setZoom(16);
           });
         });
       });
@@ -163,12 +163,9 @@
               onEachFeature: function(feature, layer) {
                 layer.setStyle(myStyle);
                 layer.on({
-                  click: function() {
-                    console.log(feature);
-                  },
-                  mouseover: function(evt) {
-                  },
-                  mouseout: function(evt) {
+                  add: function() {
+                    console.log(shapesJson[0].bbox);
+                    map.fitBounds(shapesJson[0].bbox);
                   }
                 });
               }

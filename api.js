@@ -32,11 +32,11 @@ api.get('/trip/:route_id', function(req, res) {
 
     db.collection('stop_times').find({ trip_id: tripId }).toArray(function(err, timesArray) {
       var stopIds =  _.pluck(timesArray, 'stop_id');
-      console.log(stopIds);
+      //console.log(stopIds);
       resp.stop_times = timesArray;
 
       db.collection('stops').find({'stop_id': { $in: stopIds }}).toArray(function(err, stopsArray){
-          console.log(stopsArray);
+          //console.log(stopsArray);
           resp.stops = stopsArray;
           res.set(headers);
           res.send(resp);
@@ -70,7 +70,6 @@ api.get('/stops/:trip_id?', function(req, res) {
       // figure out how to join... on stop_id!
       var stopIds = _.pluck(stops, 'stop_id');
       
-      //console.log(stopIds);
       db.collection('stops').find({'stop_id': { $in: stopIds }}).toArray(function(err, stopsArray){
         console.log(stopsArray.length + ' stops found');
         var resp = [];
@@ -109,8 +108,19 @@ api.get('/shape/:route_id?', function(req, res) {
 
       // get all the points of the line string
       db.collection('shapes').find({ shape_id: shapeId }).toArray(function(err, shapes) {
+        console.log(shapes);
         var geoJsonFeature = {
           type: "Feature",
+          bbox: (function() {
+            // get the coords of the first and last shape in the sequence and 
+            var seqs = _.pluck(shapes, 'shape_pt_sequence');
+            var first = shapes[0];
+            var last = shapes[shapes.length - 1];
+            return [
+              [first['shape_pt_lat'], first['shape_pt_lon']],
+              [last['shape_pt_lat'], last['shape_pt_lon']]
+            ];
+          })(),
           geometry: {
             type: "LineString",
             coordinates: _.zip(_.pluck(shapes, 'shape_pt_lon'), _.pluck(shapes, 'shape_pt_lat'))

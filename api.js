@@ -81,16 +81,31 @@ api.get('/stops/:trip_id?', function(req, res) {
         resp.sort(function(a, b) {
           return a.stop_sequence - b.stop_sequence;
         });
+        
+        var data = {
+          info: {
+            num_stops: stops.length,
+            total_time_mins: 45
+          },
+          data: stops
+        };
         res.set(headers);
-        res.send(JSON.stringify(resp));
+        res.send(JSON.stringify(data));
       });
     });
   }
   else {
     db.collection('stop_times').find({ route_id: routeId }).toArray(function (err, stops) {
       if( err ) throw err;
+      var data = {
+        info: {
+          num_stops: stops.length,
+          total_time_mins: 45
+        },
+        data: stops
+      };
       res.set(headers);
-      res.send(JSON.stringify(stops));
+      res.send(JSON.stringify(data));
     });
   }
 });
@@ -112,8 +127,7 @@ api.get('/shape/:route_id?', function(req, res) {
         var geoJsonFeature = {
           type: "Feature",
           bbox: (function() {
-            // get the coords of the first and last shape in the sequence and 
-            var seqs = _.pluck(shapes, 'shape_pt_sequence');
+            // get the coords of the first and last shape in the sequences
             var first = shapes[0];
             var last = shapes[shapes.length - 1];
             return [

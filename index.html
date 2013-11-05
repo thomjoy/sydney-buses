@@ -18,6 +18,8 @@
     <select id="route"></select>
     <label>Destination</label>
     <select id="trip"></select>
+    <div id="trip-summary">
+    </div>
     <ul id="stop-times">
     </ul>
   </div>
@@ -78,7 +80,7 @@
           var $ul = $('#stop-times');
           var listItems = [];
         
-          _.each(stops, function(stop) {
+          _.each(stops.data, function(stop) {
             var li = '<li id="' + stop.stop_id + '">';
                 li += "<h4>" + stop.stop_name + "</h4>";
                 li += "<div>Arrive: " + stop.arrival_time + "</div>";
@@ -88,6 +90,8 @@
             listItems.push(li);
           });
 
+          var summary = '<img src="icon_bus_l.gif" /><span>' + stops.info.num_stops + ' stops in ' + stops.info.total_time_mins + ' minutes';
+          $('#trip-summary').html(summary);
           $ul.empty().append(listItems);
   
           $('.add-to-map').on('click', function() {
@@ -138,7 +142,7 @@
         $.when( getShapes, getTrips ).then(function(shapesJson, tripsJson) {
           var myStyle = {
             "color": "#29d",
-            "weight": 1,
+            "weight": 2,
             "opacity": 1
           };
           var trips = [];

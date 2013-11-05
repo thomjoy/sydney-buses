@@ -50,12 +50,8 @@
       }
     }
 
-    $( document ).ajaxStart(function() {
-        NProgress.start();
-    });
-    $( document ).ajaxStop(function() {
-        NProgress.done();
-    });
+    $( document ).ajaxStart(function() { NProgress.start(); });
+    $( document ).ajaxStop(function() { NProgress.done(); });
 
     // --- Go --- //
     $.when( routes ).then(function(routeJson) {
@@ -98,19 +94,29 @@
             var coords = $(this).data('latlon').split(',');
             var latLng = new L.LatLng(coords[0], coords[1]);
             var m = new L.Marker(latLng).toGeoJSON();
-            var markerLayer = L.geoJson(m, {
-              onEachFeature: function(feature, layer) {
-                layer.on({
-                  click: function() { 
-                   console.log(feature);
-                  },
-                  mouseover: function(evt) {
-                  },
-                  mouseout: function(evt) {
-                  }
-                });
-              }
-            }).addTo(map);
+            var cacheKey = 'marker-' + $(this).data('latlon');
+            console.log(cacheKey);
+
+            if( ! layerCache.get(cacheKey) ) {
+              var markerLayer = L.geoJson(m, {
+                onEachFeature: function(feature, layer) {
+                  layer.on({
+                    click: function() { 
+                     console.log(feature);
+                    },
+                    mouseover: function(evt) {
+                    },
+                    mouseout: function(evt) {
+                    }
+                  });
+                }
+              }).addTo(map);
+
+              layerCache.add(markerLayer, cacheKey);
+            }
+            //else {
+              //layerCache[cacheKey].addTo(map);
+            //}
 
             //map.fitBounds(latLng);
             map.panTo(latLng);
@@ -180,9 +186,16 @@
     });
 
     layerGroup.addTo(map);
-
-    $('#map').css('height', function() { return document.body.clientHeight || '800px'; });
     map.setView([-33.8600, 151.2111], 10);
+
+    $(document).on('ready', function() {
+      var windowHeight = document.body.clientHeight || document.documentElement.clientHeight || '500px';
+      $('#map').css('height', windowHeight);
+      $('#stop-times').css('height', function() {
+        //return $(this). - windowHeight;
+        return '380px';
+      });
+    });
   </script>
 </body>
 </html>

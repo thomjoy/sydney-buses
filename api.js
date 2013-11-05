@@ -81,11 +81,25 @@ api.get('/stops/:trip_id?', function(req, res) {
         resp.sort(function(a, b) {
           return a.stop_sequence - b.stop_sequence;
         });
+
+        function getDistance() {
+          var start = stopsArray[0];
+          var end = stopsArray[stopsArray.length -1];
+
+          var dlon = end.stop_lon - start.stop_lon;
+          var dlat = end.stop_lat - start.stop_lat;
+          var earthRadius = 6371;
+
+          var a = Math.pow(Math.sin(dlat/2), 2) + Math.cos(start.stop_lat) * Math.pow(Math.cos(end.stop_lat) * (Math.sin(dlon/2)), 2);
+          var c = 2 * Math.atan2( Math.sqrt(a), Math.sqrt(1-a) );
+          return earthRadius * c;
+        }
         
         var data = {
           info: {
             num_stops: stops.length,
-            total_time_mins: 45
+            total_time_mins: 45,
+            distance: getDistance()
           },
           data: stops
         };

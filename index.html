@@ -90,7 +90,7 @@
             listItems.push(li);
           });
 
-          var summary = '<img src="icon_bus_l.gif" /><span>' + stops.info.num_stops + ' stops in ' + stops.info.total_time_mins + ' minutes';
+          var summary = '<img src="icon_bus_l.gif" /><span>' + stops.info.num_stops + ' stops in ' + stops.info.total_time_mins + ' minutes (' + stops.info.distance + ' km)';
           $('#trip-summary').html(summary);
           $ul.empty().append(listItems);
   

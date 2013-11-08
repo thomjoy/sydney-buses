@@ -10,9 +10,6 @@ var PORT = 9000;
 // --- Serve the API
 var api = express();
 
-api.use(express.bodyParser());
-api.use(express.static(__dirname));
-
 var headers = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Credentials': true,
@@ -20,6 +17,9 @@ var headers = {
   'Access-Control-Allow-Headers': 'Content-Type',
   'Content-Type': 'application/json'
 };
+
+api.use(express.bodyParser());
+api.use(express.static(__dirname));
 
 api.get('/trip/:route_id', function(req, res) {
   var resp = {};

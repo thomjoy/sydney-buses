@@ -46,6 +46,29 @@
     })
     .setView([20, 0], 2);
 
+    map.on('click', function(e) {
+      console.log(e);
+      var req = $.ajax({
+        type: 'GET',
+        url: 'http://localhost:9000/search',
+        data: {
+          lon: e.latlng['lng'],
+          lat: e.latlng['lat'],
+          distance: 1
+        } 
+      });
+
+      $.when( req ).done(function(results) {
+        
+        results.forEach(function(result) {
+          console.log(result);
+          //var m = new L.Marker(result.lat, result.lon);
+          //m.addTo(map);
+          map.featureLayer.setGeoJSON(JSON.parse(result.geojson));
+        });
+      });
+    });
+
     // Quick cache
     function LayerCache() {
       var layers = {};
@@ -202,7 +225,7 @@
       var windowHeight = document.body.clientHeight || document.documentElement.clientHeight || '500px';
       $('#map').css('height', windowHeight);
       $('#stop-times').css('height', function() {
-        return $(this). - windowHeight;
+        //return $(this). - windowHeight;
         return '380px';
       });
     });

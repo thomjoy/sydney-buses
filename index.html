@@ -7,7 +7,8 @@
   <link rel='stylesheet' href='http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css' />
   <link rel="stylesheet" href="bower_components/nprogress/nprogress.css" />
   <link rel='stylesheet' href="style.css" />
-  <script src='//cdn.leafletjs.com/leaflet-0.6.4/leaflet.js'></script>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.3/mapbox.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox.js/v1.6.3/mapbox.css' rel='stylesheet' />
   <script src='//code.jquery.com/jquery-2.0.3.min.js'></script>
   <script src='bower_components/underscore/underscore.js'></script>
   <script src="bower_components/nprogress/nprogress.js"></script>
@@ -25,17 +26,25 @@
   </div>
   <div id='map'></div>
   <script>
-    var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/22677/256/{z}/{x}/{y}.png'
+    /*var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/22677/256/{z}/{x}/{y}.png'
         cloudmadeAttribution = 'Map data &copy; 2013 OpenStreetMap contributors, Imagery &copy; 2013 CloudMade',
         layerOptions = { maxZoom: 18, attribution: cloudmadeAttribution, styleId: 22677 },
         layer = L.tileLayer(cloudmadeUrl, layerOptions),
         map = L.map('map',{
           zoom: 10,
           layers: [layer]
-        }),
-        layerGroup = new L.LayerGroup(),
-        layerCache = new LayerCache(),
-        routes = $.ajax({ url: 'http://localhost:9000/route' });
+        })
+    */
+
+    var routes = $.ajax({ url: 'http://localhost:9000/route' });
+    var layerGroup = new L.LayerGroup();
+    var layerCache = new LayerCache();
+
+    var map = L.mapbox.map('map', 'thomjoy1984.ic7lmdpf', {
+      attributionControl: false,
+      infoControl: true
+    })
+    .setView([20, 0], 2);
 
     // Quick cache
     function LayerCache() {
@@ -193,7 +202,7 @@
       var windowHeight = document.body.clientHeight || document.documentElement.clientHeight || '500px';
       $('#map').css('height', windowHeight);
       $('#stop-times').css('height', function() {
-        //return $(this). - windowHeight;
+        return $(this). - windowHeight;
         return '380px';
       });
     });

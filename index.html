@@ -8,7 +8,11 @@
   <link rel="stylesheet" href="bower_components/nprogress/nprogress.css" />
   <link rel='stylesheet' href="style.css" />
   <script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.3/mapbox.js'></script>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.js'></script>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js'></script>
+
   <link href='https://api.tiles.mapbox.com/mapbox.js/v1.6.3/mapbox.css' rel='stylesheet' />
+  <link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.css' rel='stylesheet' />
   <script src='//code.jquery.com/jquery-2.0.3.min.js'></script>
   <script src='bower_components/underscore/underscore.js'></script>
   <script src="bower_components/nprogress/nprogress.js"></script>
@@ -40,32 +44,44 @@
     var layerGroup = new L.LayerGroup();
     var layerCache = new LayerCache();
 
-    var map = L.mapbox.map('map', 'thomjoy1984.ic7lmdpf', {
+    var map = L.mapbox.map('map', 'thomjoy1984.igjcb5m0', {
       attributionControl: false,
       infoControl: true
     })
     .setView([20, 0], 2);
 
+    L.control.locate().addTo(map);
+
     map.on('click', function(e) {
-      console.log(e);
+      
       var req = $.ajax({
         type: 'GET',
         url: 'http://localhost:9000/search',
         data: {
           lon: e.latlng['lng'],
           lat: e.latlng['lat'],
-          distance: 1
+          distance: 0.2
         } 
       });
 
+      var circle_options = {
+          color: 'royalblue',      // Stroke color
+          opacity: 0.8,         // Stroke opacity
+          weight: 2,         // Stroke weight
+          fillColor: 'royalblue',  // Fill color
+          fillOpacity: 0.4    // Fill opacity
+      };
       $.when( req ).done(function(results) {
-        
-        results.forEach(function(result) {
-          console.log(result);
-          //var m = new L.Marker(result.lat, result.lon);
-          //m.addTo(map);
-          map.featureLayer.setGeoJSON(JSON.parse(result.geojson));
-        });
+        var geojson = _.map(results, function(result) { return JSON.parse(result.geojson); });
+        console.log(geojson);
+
+        /*var desyCircle = LGeo.circle([0, 0], 20000, {
+            parts: 60,
+            color: '#f00',
+            fillOpacity: 0
+        }).addTo(map);*/
+        L.circle([e.latlng['lat'], e.latlng['lng']], 200, circle_options).addTo(map);
+        map.featureLayer.setGeoJSON(geojson);
       });
     });
 
@@ -109,11 +125,12 @@
         });
 
         $.when( getStops ).then(function( stops ) {
+          console.log(stops);
           var $ul = $('#stop-times');
           var listItems = [];
         
           _.each(stops.data, function(stop) {
-            var li = '<li id="' + stop.stop_id + '">';
+            var li = '<li id="' + stop.arrival_time + '">';
                 li += "<h4>" + stop.stop_name + "</h4>";
                 li += "<div>Arrive: " + stop.arrival_time + "</div>";
                 li += "<div>Depart: " + stop.departure_time + "</div>";
@@ -122,8 +139,12 @@
             listItems.push(li);
           });
 
-          var summary = '<img src="icon_bus_l.gif" /><span>' + stops.info.num_stops + ' stops in ' + stops.info.total_time_mins + ' minutes (' + stops.info.distance + ' km)';
+          map.featureLayer.setGeoJSON(stops.geojson);
+
+          /*var summary = '<img src="icon_bus_l.gif" /><span>' + stops.info.num_stops + ' stops in ' + stops.info.total_time_mins + ' minutes (' + stops.info.distance + ' km)';
           $('#trip-summary').html(summary);
+          */
+
           $ul.empty().append(listItems);
   
           $('.add-to-map').on('click', function() {
@@ -162,6 +183,7 @@
       });
 
       $route.on('change', function(evt) {
+        console.log('Route changed');
         var optionSelected = $("option:selected", this);
         var routeId = $(optionSelected).attr('data-name');
         var getShapes = $.ajax({
@@ -172,13 +194,14 @@
         });
 
         $.when( getShapes, getTrips ).then(function(shapesJson, tripsJson) {
+
           var myStyle = {
-            "color": "#29d",
-            "weight": 2,
+            "color": "red",
+            "weight": 3,
             "opacity": 1
           };
           var trips = [];
-          
+            
           _.each(tripsJson[0].trips, function(t) {
             var name = t.trip_headsign,
                 tripId = t.trip_id;
@@ -200,7 +223,6 @@
                 layer.setStyle(myStyle);
                 layer.on({
                   add: function() {
-                    console.log(shapesJson[0].bbox);
                     map.fitBounds(shapesJson[0].bbox);
                   }
                 });
@@ -226,7 +248,7 @@
       $('#map').css('height', windowHeight);
       $('#stop-times').css('height', function() {
         //return $(this). - windowHeight;
-        return '380px';
+        return '480px';
       });
     });
   </script>

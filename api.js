@@ -191,7 +191,6 @@ api.get('/shape/:route_id?', function(req, res) {
         });
       });
       
-      //console.log(geoJsonFeatures.length);
       res.set(headers);
       res.send(JSON.stringify(geoJsonFeatures));
     });
